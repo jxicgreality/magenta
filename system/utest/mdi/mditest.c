@@ -119,6 +119,12 @@ bool simple_tests(void) {
     ASSERT_NEQ(string, NULL, "mdi_node_string returned NULL");
     EXPECT_EQ(strcmp(string, "hello"), 0, "mdi_node_string failed");
 
+    // unary not test
+    EXPECT_EQ(mdi_find_node(&root, MDI_TEST_NOT_UINT32, &node), 0,
+              "MDI_TEST_NOT_UINT32 not found");
+    EXPECT_EQ(mdi_node_uint32(&node, &u32), 0, "mdi_node_uint32 failed");
+    EXPECT_EQ(u32, 0x00FF00FFu, "mdi_node_uint32 returned wrong value");
+
     END_TEST;
 }
 

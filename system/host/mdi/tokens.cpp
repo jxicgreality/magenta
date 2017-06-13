@@ -65,6 +65,32 @@ mdi_type_t Token::get_type_name() {
     }
 }
 
+// returns operator precedence for binary operators
+int Token::get_precedence() {
+    // returns precedence levels from C language spc
+    switch (type) {
+    case TOKEN_TIMES:
+    case TOKEN_DIV:
+    case TOKEN_MOD:
+        return 3;
+    case TOKEN_PLUS:
+    case TOKEN_MINUS:
+        return 4;
+    case TOKEN_LSHIFT:
+    case TOKEN_RSHIFT:
+        return 5;
+    case TOKEN_AND:
+        return 8;
+    case TOKEN_XOR:
+        return 9;
+    case TOKEN_OR:
+        return 10;
+    default:
+        printf("MDI internal error: bad token type in Token::get_precedence()\n");
+        return -1;
+    }
+}
+
 void Token::print() {
     switch (type) {
     case TOKEN_INVALID:

@@ -11,6 +11,8 @@ test-boolean-true = true
 test-boolean-false = false
 test-string = "hello"
 
+test-not-uint32 = ~0xFF00FF00
+
 test-bool-array = [ true false true ]
 test-uint8-array = [ 1 2 3 ]
 test-int32-array = [ -1 -2 -3 ]

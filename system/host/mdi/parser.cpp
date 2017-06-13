@@ -225,7 +225,10 @@ static bool parse_include(Tokenizer& tokenizer, Node& root) {
 }
 
 static bool parse_int_value(Tokenizer& tokenizer, Token& token, IntValue& value) {
-    if (token.type == TOKEN_LPAREN) {
+    auto token_type = token.type;
+
+    // parenthesis have highest precedence
+    if (token_type == TOKEN_LPAREN) {
         if (!tokenizer.next_token(token)) {
             return false;
         }
@@ -241,17 +244,26 @@ static bool parse_int_value(Tokenizer& tokenizer, Token& token, IntValue& value)
         return true;
     }
 
-    if (token.type == TOKEN_PLUS || token.type == TOKEN_MINUS) {
-        if (token.type == TOKEN_MINUS) {
-            value.negative = !value.negative;
-        }
+    // handle unary operators next
+    // these are parsed right to left
+    if (token_type == TOKEN_PLUS || token_type == TOKEN_MINUS || token_type == TOKEN_NOT) {
         if (!tokenizer.next_token(token)) {
             return false;
         }
-        return parse_int_value(tokenizer, token, value);
+        if (!parse_int_value(tokenizer, token, value)) {
+            return false;
+        }
+        if (token_type == TOKEN_MINUS) {
+            value.negative = !value.negative;
+        } else if (token_type == TOKEN_NOT) {
+            value.value = ~value.value;
+printf("got TOKEN_NOT %" PRIx64 "\n", value.value);
+        }
+        return true;
     }
 
-    if (token.type != TOKEN_INT_LITERAL) {
+    // next handle list of binary operators
+    if (token_type != TOKEN_INT_LITERAL) {
         tokenizer.print_err("expected integer value, got \"%s\"\n", token.string_value.c_str());
         return false;
     }
@@ -260,36 +272,31 @@ static bool parse_int_value(Tokenizer& tokenizer, Token& token, IntValue& value)
 }
 
 static bool parse_int_node(Tokenizer& tokenizer, Node& node, Token& token, Node& parent) {
-    IntValue intValue;
-    intValue.negative = false;
+    IntValue int_value;
+    int_value.negative = false;
 
-    if (!parse_int_value(tokenizer, token, intValue)) {
+    if (!parse_int_value(tokenizer, token, int_value)) {
         return false;
     }
 
     mdi_type_t type = node.get_type();
 
     // signed version of our value
-    int64_t value = (int64_t)intValue.value;
-    if (intValue.negative) {
+    int64_t value = (int64_t)int_value.value;
+    if (int_value.negative) {
         value = -value;
     }
 
     switch (type) {
     case MDI_UINT8:
-        if (value > UINT8_MAX || value < 0) goto out_of_range;
-        node.int_value = value;
+        node.int_value = value & 0xFF;
         break;
     case MDI_INT32:
-        if (value > INT32_MAX || value < INT32_MIN) goto out_of_range;
-        node.int_value = value;
-        break;
     case MDI_UINT32:
-        if (value > UINT32_MAX || value < 0) goto out_of_range;
-        node.int_value = value;
+        node.int_value = value & 0xFFFFFFFF;
         break;
     case MDI_UINT64:
-        node.int_value = intValue.value;
+        node.int_value = int_value.value;
         break;
     default:
         assert(0);
@@ -298,11 +305,6 @@ static bool parse_int_node(Tokenizer& tokenizer, Node& node, Token& token, Node&
 
     parent.add_child(node);
     return true;
-
-out_of_range:
-    tokenizer.print_err("integer value %" PRId64 " out of range for \"%s\"\n",
-                        token.int_value, node.get_id_name());
-    return false;
 }
 
 static bool parse_string_node(Tokenizer& tokenizer, Node& node, Token& token, Node& parent) {

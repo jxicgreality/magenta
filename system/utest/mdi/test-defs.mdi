@@ -7,6 +7,7 @@ uint64              test-uint64             MDI_TEST_UINT64             10005
 boolean             test-boolean-true       MDI_TEST_BOOLEAN_TRUE       10006
 boolean             test-boolean-false      MDI_TEST_BOOLEAN_FALSE      10007
 string              test-string             MDI_TEST_STRING             10008
+uint32              test-not-uint32         MDI_TEST_NOT_UINT32         10009
 
 array[uint8]        test-uint8-array        MDI_TEST_UINT8_ARRAY        10010
 array[int32]        test-int32-array        MDI_TEST_INT32_ARRAY        10011

@@ -60,6 +60,9 @@ struct Token {
     // returns type for type name tokens
     mdi_type_t get_type_name();
 
+    // returns operator precedence for binary operators
+    int get_precedence();
+
     void print();
 };
 
