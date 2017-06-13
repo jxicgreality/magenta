@@ -1,8 +1,8 @@
 include "system/utest/mdi/test-defs.mdi"
 
-test-uint8 = 123
-test-int32 = -123
-test-pint32 = +123
+test-uint8 = (123)
+test-int32 = (-123)
+test-pint32 = +(123)
 test-nnint32 = --123
 
 test-uint32 = 0xFFFFFFFF

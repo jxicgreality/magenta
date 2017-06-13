@@ -225,6 +225,22 @@ static bool parse_include(Tokenizer& tokenizer, Node& root) {
 }
 
 static bool parse_int_value(Tokenizer& tokenizer, Token& token, IntValue& value) {
+    if (token.type == TOKEN_LPAREN) {
+        if (!tokenizer.next_token(token)) {
+            return false;
+        }
+        if (!parse_int_value(tokenizer, token, value)) {
+            return false;
+        }
+        if (!tokenizer.next_token(token)) {
+            return false;
+        }
+        if (token.type != TOKEN_RPAREN) {
+            tokenizer.print_err("Expected ')', got \"%s\"\n", token.string_value.c_str());
+        }
+        return true;
+    }
+
     if (token.type == TOKEN_PLUS || token.type == TOKEN_MINUS) {
         if (token.type == TOKEN_MINUS) {
             value.negative = !value.negative;
