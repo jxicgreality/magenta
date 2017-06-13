@@ -25,10 +25,22 @@ enum TokenType {
     TOKEN_DOT,              // '.'
     TOKEN_PLUS,             // '+'
     TOKEN_MINUS,            // '-'
+    TOKEN_TIMES,            // '*'
+    TOKEN_DIV,              // '/'
+    TOKEN_MOD,              // '%'
+    TOKEN_NOT,              // '~'
+    TOKEN_AND,              // '&'
+    TOKEN_OR,               // '|'
+    TOKEN_XOR,              // '^'
+    TOKEN_LSHIFT,           // "<<"
+    TOKEN_RSHIFT,           // ">>"
+    TOKEN_LPAREN,           // '('
+    TOKEN_RPAREN,           // ')'
 
     // reserved words
     TOKEN_TRUE,             // "true"
     TOKEN_FALSE,            // "false"
+    TOKEN_CONST,            // "const"
     TOKEN_INCLUDE,          // "include"
     TOKEN_UINT8_TYPE,       // "uint8"
     TOKEN_INT32_TYPE,       // "int32"

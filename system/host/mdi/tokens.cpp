@@ -16,6 +16,7 @@ struct ReservedWord {
 } reserved_words [] = {
     { TOKEN_TRUE,           "true" },
     { TOKEN_FALSE,          "false" },
+    { TOKEN_CONST,          "const" },
     { TOKEN_INCLUDE,        "include" },
     { TOKEN_UINT8_TYPE,     "uint8" },
     { TOKEN_INT32_TYPE,     "int32" },
@@ -105,11 +106,47 @@ void Token::print() {
     case TOKEN_MINUS:
         printf("TOKEN_MINUS\n");
         break;
+    case TOKEN_TIMES:
+        printf("TOKEN_TIMES\n");
+        break;
+    case TOKEN_DIV:
+        printf("TOKEN_DIV\n");
+        break;
+    case TOKEN_MOD:
+        printf("TOKEN_MOD\n");
+        break;
+    case TOKEN_NOT:
+        printf("TOKEN_NOT\n");
+        break;
+    case TOKEN_AND:
+        printf("TOKEN_AND\n");
+        break;
+    case TOKEN_OR:
+        printf("TOKEN_OR\n");
+        break;
+    case TOKEN_XOR:
+        printf("TOKEN_XOR\n");
+        break;
+    case TOKEN_LSHIFT:
+        printf("TOKEN_LSHIFT\n");
+        break;
+    case TOKEN_RSHIFT:
+        printf("TOKEN_RSHIFT\n");
+        break;
+    case TOKEN_LPAREN:
+        printf("TOKEN_LPAREN\n");
+        break;
+    case TOKEN_RPAREN:
+        printf("TOKEN_RPAREN\n");
+        break;
     case TOKEN_TRUE:
         printf("TOKEN_TRUE\n");
         break;
     case TOKEN_FALSE:
         printf("TOKEN_FALSE\n");
+        break;
+    case TOKEN_CONST:
+        printf("TOKEN_CONST\n");
         break;
     case TOKEN_INCLUDE:
         printf("TOKEN_INCLUDE\n");
@@ -422,6 +459,49 @@ bool Tokenizer::next_token(Token& token) {
             break;
         case '-':
             token.type = TOKEN_MINUS;
+            break;
+        case '*':
+            token.type = TOKEN_TIMES;
+            break;
+        case '/':
+            token.type = TOKEN_DIV;
+            break;
+        case '%':
+            token.type = TOKEN_MOD;
+            break;
+        case '~':
+            token.type = TOKEN_NOT;
+            break;
+        case '&':
+            token.type = TOKEN_AND;
+            break;
+        case '|':
+            token.type = TOKEN_OR;
+            break;
+        case '^':
+            token.type = TOKEN_XOR;
+            break;
+        case '<':
+            if (next_char() == '<') {
+                token.type = TOKEN_LSHIFT;
+            } else {
+                print_err("unexpected token '<'\n");
+                result = false;
+            }
+            break;
+        case '>':
+            if (next_char() == '>') {
+                token.type = TOKEN_RSHIFT;
+            } else {
+                print_err("unexpected token '>'\n");
+                result = false;
+            }
+            break;
+        case '(':
+            token.type = TOKEN_LPAREN;
+            break;
+        case ')':
+            token.type = TOKEN_RPAREN;
             break;
         default:
             print_err("invalid token \'%c\'\n", ch);
