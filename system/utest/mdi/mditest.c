@@ -74,11 +74,21 @@ bool simple_tests(void) {
     EXPECT_EQ(mdi_node_uint8(&node, &u8), 0, "mdi_node_uint8 failed");
     EXPECT_EQ(u8, 123, "mdi_node_uint8 returned wrong value");
 
-    // int32 test
+    // int32 tests
     EXPECT_EQ(mdi_find_node(&root, MDI_TEST_INT32, &node), 0,
               "MDI_TEST_INT32 not found");
     EXPECT_EQ(mdi_node_int32(&node, &i32), 0, "mdi_node_int32 failed");
     EXPECT_EQ(i32, -123, "mdi_node_int32 returned wrong value");
+
+    EXPECT_EQ(mdi_find_node(&root, MDI_TEST_PINT32, &node), 0,
+              "MDI_TEST_PINT32 not found");
+    EXPECT_EQ(mdi_node_int32(&node, &i32), 0, "mdi_node_int32 failed");
+    EXPECT_EQ(i32, 123, "mdi_node_int32 returned wrong value");
+
+    EXPECT_EQ(mdi_find_node(&root, MDI_TEST_NNINT32, &node), 0,
+              "MDI_TEST_NNINT32 not found");
+    EXPECT_EQ(mdi_node_int32(&node, &i32), 0, "mdi_node_int32 failed");
+    EXPECT_EQ(i32, 123, "mdi_node_int32 returned wrong value");
 
     // uint32 test
     EXPECT_EQ(mdi_find_node(&root, MDI_TEST_UINT32, &node), 0,

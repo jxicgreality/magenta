@@ -14,9 +14,8 @@
 enum TokenType {
     TOKEN_INVALID = 0,
     TOKEN_EOF,              // returned at end of input
-    TOKEN_INT_LITERAL,      // non-negative integer
-    TOKEN_NEG_INT_LITERAL,  // negative integer
-    TOKEN_STRING_LITERAL,
+    TOKEN_INT_LITERAL,      // integer literal
+    TOKEN_STRING_LITERAL,   // string literal
     TOKEN_IDENTIFIER,
     TOKEN_LIST_START,       // '{'
     TOKEN_LIST_END,         // '{'
@@ -24,6 +23,8 @@ enum TokenType {
     TOKEN_ARRAY_END,        // ']'
     TOKEN_EQUALS,           // '='
     TOKEN_DOT,              // '.'
+    TOKEN_PLUS,             // '+'
+    TOKEN_MINUS,            // '-'
 
     // reserved words
     TOKEN_TRUE,             // "true"

@@ -14,6 +14,11 @@
 
 //#define PRINT_ID_DECLARATIONS 1
 
+struct IntValue {
+    uint64_t value;
+    bool negative;
+};
+
 static bool parse_node(Tokenizer& tokenizer, Token& token, Node& parent);
 
 // map of identifier names to mdi_id_t
@@ -219,18 +224,38 @@ static bool parse_include(Tokenizer& tokenizer, Node& root) {
     return process_file(&tokenizer, token.string_value.c_str(), root);
 }
 
+static bool parse_int_value(Tokenizer& tokenizer, Token& token, IntValue& value) {
+    if (token.type == TOKEN_PLUS || token.type == TOKEN_MINUS) {
+        if (token.type == TOKEN_MINUS) {
+            value.negative = !value.negative;
+        }
+        if (!tokenizer.next_token(token)) {
+            return false;
+        }
+        return parse_int_value(tokenizer, token, value);
+    }
+
+    if (token.type != TOKEN_INT_LITERAL) {
+        tokenizer.print_err("expected integer value, got \"%s\"\n", token.string_value.c_str());
+        return false;
+    }
+    value.value = token.int_value;
+    return true;
+}
+
 static bool parse_int_node(Tokenizer& tokenizer, Node& node, Token& token, Node& parent) {
-    if (token.type != TOKEN_INT_LITERAL && token.type != TOKEN_NEG_INT_LITERAL) {
-        tokenizer.print_err("expected integer value for node \"%s\", got \"%s\"\n",
-                node.get_id_name(), token.string_value.c_str());
+    IntValue intValue;
+    intValue.negative = false;
+
+    if (!parse_int_value(tokenizer, token, intValue)) {
         return false;
     }
 
     mdi_type_t type = node.get_type();
 
     // signed version of our value
-    int64_t value = (int64_t)token.int_value;
-    if (token.type == TOKEN_NEG_INT_LITERAL) {
+    int64_t value = (int64_t)intValue.value;
+    if (intValue.negative) {
         value = -value;
     }
 
@@ -248,7 +273,7 @@ static bool parse_int_node(Tokenizer& tokenizer, Node& node, Token& token, Node&
         node.int_value = value;
         break;
     case MDI_UINT64:
-        node.int_value = token.int_value;
+        node.int_value = intValue.value;
         break;
     default:
         assert(0);
@@ -259,8 +284,7 @@ static bool parse_int_node(Tokenizer& tokenizer, Node& node, Token& token, Node&
     return true;
 
 out_of_range:
-    tokenizer.print_err("integer value %s%" PRId64 " out of range for \"%s\"\n",
-                        (token.type == TOKEN_NEG_INT_LITERAL ? "-" : ""),
+    tokenizer.print_err("integer value %" PRId64 " out of range for \"%s\"\n",
                         token.int_value, node.get_id_name());
     return false;
 }

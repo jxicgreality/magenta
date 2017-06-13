@@ -1,10 +1,12 @@
 uint8               test-uint8              MDI_TEST_UINT8              10000
 int32               test-int32              MDI_TEST_INT32              10001
-uint32              test-uint32             MDI_TEST_UINT32             10002
-uint64              test-uint64             MDI_TEST_UINT64             10003
-boolean             test-boolean-true       MDI_TEST_BOOLEAN_TRUE       10004
-boolean             test-boolean-false      MDI_TEST_BOOLEAN_FALSE      10005
-string              test-string             MDI_TEST_STRING             10006
+int32               test-pint32             MDI_TEST_PINT32             10002
+int32               test-nnint32            MDI_TEST_NNINT32            10003
+uint32              test-uint32             MDI_TEST_UINT32             10004
+uint64              test-uint64             MDI_TEST_UINT64             10005
+boolean             test-boolean-true       MDI_TEST_BOOLEAN_TRUE       10006
+boolean             test-boolean-false      MDI_TEST_BOOLEAN_FALSE      10007
+string              test-string             MDI_TEST_STRING             10008
 
 array[uint8]        test-uint8-array        MDI_TEST_UINT8_ARRAY        10010
 array[int32]        test-int32-array        MDI_TEST_INT32_ARRAY        10011

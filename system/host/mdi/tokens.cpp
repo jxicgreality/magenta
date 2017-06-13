@@ -75,9 +75,6 @@ void Token::print() {
     case TOKEN_INT_LITERAL:
         printf("TOKEN_INT_LITERAL %" PRId64 "\n", int_value);
         break;
-    case TOKEN_NEG_INT_LITERAL:
-        printf("TOKEN_NEG_INT_LITERAL %" PRId64 "\n", int_value);
-        break;
     case TOKEN_STRING_LITERAL:
         printf("TOKEN_STRING_LITERAL %s\n", string_value.c_str());
         break;
@@ -101,6 +98,12 @@ void Token::print() {
         break;
     case TOKEN_DOT:
         printf("TOKEN_DOT\n");
+        break;
+    case TOKEN_PLUS:
+        printf("TOKEN_PLUS\n");
+        break;
+    case TOKEN_MINUS:
+        printf("TOKEN_MINUS\n");
         break;
     case TOKEN_TRUE:
         printf("TOKEN_TRUE\n");
@@ -259,22 +262,18 @@ bool Tokenizer::parse_identifier(Token& token, int ch) {
 }
 
 bool Tokenizer::parse_integer(Token& token, int ch) {
-    bool negative = false;
-    bool hexadecimal = false;
+    int base = 10;
     uint64_t value = 0;
 
     token.string_value.clear();
     token.string_value.append(1, ch);
 
-    if (ch == '-') {
-        negative = true;
-        ch = next_char();
-        token.string_value.append(1, ch);
-    } else if (ch == '0') {
+    if (ch == '0') {
+        base = 8;
         ch = next_char();
         token.string_value.append(1, ch);
         if (ch == 'x' || ch == 'X') {
-            hexadecimal = true;
+            base = 16;
             ch = next_char();
             token.string_value.append(1, ch);
         }
@@ -287,7 +286,7 @@ bool Tokenizer::parse_integer(Token& token, int ch) {
 
         if (ch >= '0' && ch <= '9') {
             digit = ch - '0';
-        } else if (hexadecimal) {
+        } else if (base == 16) {
             if (ch >= 'A' && ch <= 'F') {
                 digit = ch - 'A' + 10;
             } else if (ch >= 'a' && ch <= 'f') {
@@ -299,11 +298,7 @@ bool Tokenizer::parse_integer(Token& token, int ch) {
             break;
         }
 
-        if (hexadecimal) {
-            value = 16 * value + digit;
-        } else {
-            value = 10 * value + digit;
-        }
+        value = base * value + digit;
 
         if (++digit_count > 16) {
             print_err("integer value too large\n");
@@ -311,7 +306,7 @@ bool Tokenizer::parse_integer(Token& token, int ch) {
         }
 
         ch = peek_char();
-        if (!isdigit(ch) && !(hexadecimal &&
+        if (!isdigit(ch) && !(base == 16 &&
                               ((ch >= 'A' && ch <= 'F') ||
                                (ch >= 'a' && ch <= 'f')))) {
             break;
@@ -320,11 +315,7 @@ bool Tokenizer::parse_integer(Token& token, int ch) {
         next_char();
     }
 
-    token.type = (negative ? TOKEN_NEG_INT_LITERAL : TOKEN_INT_LITERAL);
-    if (negative && value > (uint64_t) -INT64_MIN) {
-        print_err("integer value too small\n");
-        return false;
-    }
+    token.type = TOKEN_INT_LITERAL;
     token.int_value = value;
     return true;
 }
@@ -399,7 +390,7 @@ bool Tokenizer::next_token(Token& token) {
 
     if (isalpha(ch)) {
        result = parse_identifier(token, ch);
-    } else if (isdigit(ch) || ch == '-') {
+    } else if (isdigit(ch)) {
         result = parse_integer(token, ch);
     } else if (ch == '\"') {
         result = parse_string(token);
@@ -425,6 +416,12 @@ bool Tokenizer::next_token(Token& token) {
             break;
         case '.':
             token.type = TOKEN_DOT;
+            break;
+        case '+':
+            token.type = TOKEN_PLUS;
+            break;
+        case '-':
+            token.type = TOKEN_MINUS;
             break;
         default:
             print_err("invalid token \'%c\'\n", ch);
