@@ -297,32 +297,65 @@ static bool parse_int_value(Tokenizer& tokenizer, Token& token, int current_prec
         }
 
         switch (op) {
-        case TOKEN_PLUS:
-            if (rvalue.negative) {
-                lvalue.value -= rvalue.value;
-            } else {
-                lvalue.value += rvalue.value;
-            }
-            break;
         case TOKEN_MINUS:
-            if (rvalue.negative) {
-                lvalue.value += rvalue.value;
+            rvalue.negative = !rvalue.negative;
+            // fall through
+        case TOKEN_PLUS:
+            if (lvalue.negative) {
+                if (rvalue.negative) {
+                    lvalue.value += rvalue.value;
+                } else if (lvalue.value > rvalue.value) {
+                    lvalue.value -= rvalue.value;
+                } else {
+                    lvalue.value = rvalue.value - lvalue.value;
+                    lvalue.negative = true;
+                }            
             } else {
-                lvalue.value -= rvalue.value;
+                if (!rvalue.negative) {
+                    lvalue.value += rvalue.value;
+                } else if (lvalue.value > rvalue.value) {
+                    lvalue.value -= rvalue.value;
+                } else {
+                    lvalue.value = rvalue.value - lvalue.value;
+                    lvalue.negative = false;
+                }            
             }
             break;
         case TOKEN_TIMES:
+            lvalue.value *= rvalue.value;
+            if (lvalue.negative) {
+                rvalue.negative = !rvalue.negative;
+            }
+            break;
         case TOKEN_DIV:
+            if (lvalue.value == 0) {
+                tokenizer.print_err("Divide by zero\n");
+                return false;
+            }
+            lvalue.value /= rvalue.value;
+            if (lvalue.negative) {
+                rvalue.negative = !rvalue.negative;
+            }
+            break;
         case TOKEN_MOD:
+            if (lvalue.value < 1 || lvalue.negative) {
+                tokenizer.print_err("Attempt to mod by %d\n", (lvalue.negative ? -lvalue.value : lvalue.value));
+                return false;
+            }
+            lvalue.value %= rvalue.value;
+            if (lvalue.negative) {
+                rvalue.negative = !rvalue.negative;
+            }
+            break;
         case TOKEN_AND:
         case TOKEN_OR:
         case TOKEN_XOR:
         case TOKEN_LSHIFT:
         case TOKEN_RSHIFT:
-            printf("binary operation not implemented yet\n");
+            tokenizer.print_err("binary operation not implemented yet\n");
             return false;
         default:
-            printf("MDI internal error: bad op %d in parse_int_value\n", op);
+            tokenizer.print_err("MDI internal error: bad op %d in parse_int_value\n", op);
         }
     }
 
