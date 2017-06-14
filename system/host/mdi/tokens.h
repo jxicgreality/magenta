@@ -76,6 +76,7 @@ public:
     // returns false if we cannot parse the next token
     // TOKEN_EOF is returned at end of file
     bool next_token(Token& token);
+    bool peek_token(Token& token);
 
     void print_err(const char* fmt, ...);
 
@@ -94,4 +95,7 @@ private:
     int line_number;
     unsigned line_offset;
     int peek[2];
+
+    Token token_peek;
+    bool have_token_peek = false;
 };

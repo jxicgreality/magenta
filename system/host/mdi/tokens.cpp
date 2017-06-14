@@ -447,6 +447,12 @@ bool Tokenizer::parse_string(Token& token) {
     // returns false if we cannot parse the next token
     // EOF is not considered an error
 bool Tokenizer::next_token(Token& token) {
+    if (have_token_peek) {
+        token = token_peek;
+        have_token_peek = false;
+        return true;
+    }
+
     eat_whitespace();
     int ch = next_char();
     bool result = true;
@@ -545,6 +551,16 @@ bool Tokenizer::next_token(Token& token) {
 
     return result;
 }
+
+bool Tokenizer::peek_token(Token& token) {
+    if (!have_token_peek && !next_token(token_peek)) {
+        return false;
+    }
+    token = token_peek;
+    have_token_peek = true;
+    return true;
+}
+
 
 void Tokenizer::print_err(const char* fmt, ...) {
     fprintf(stderr, "%s:%d:%d: error: ", current_file.c_str(), line_number, line_offset);
