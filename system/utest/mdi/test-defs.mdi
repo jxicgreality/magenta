@@ -18,3 +18,7 @@ array[boolean]      test-bool-array         MDI_TEST_BOOL_ARRAY         10014
 list                test-list               MDI_TEST_LIST               10020
 int32               test-list.int           MDI_TEST_LIST_INT           10021
 string              test-list.str           MDI_TEST_LIST_STR           10022
+
+uint32              seven-1                 MDI_TEST_SEVEN_1            10030
+uint32              seven-2                 MDI_TEST_SEVEN_2            10031
+uint32              seven-3                 MDI_TEST_SEVEN_3            10032

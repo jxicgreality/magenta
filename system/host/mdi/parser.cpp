@@ -15,8 +15,11 @@
 //#define PRINT_ID_DECLARATIONS 1
 
 struct IntValue {
-    uint64_t value;
-    bool negative;
+    IntValue() {}
+    IntValue(uint64_t v) { value = v; }
+
+    uint64_t value = 0;
+    bool negative = false;
 };
 
 static bool parse_node(Tokenizer& tokenizer, Token& token, Node& parent);
@@ -224,7 +227,7 @@ static bool parse_include(Tokenizer& tokenizer, Node& root) {
     return process_file(&tokenizer, token.string_value.c_str(), root);
 }
 
-static bool parse_int_value(Tokenizer& tokenizer, Token& token, int current_prededence, IntValue& value) {
+static bool parse_int_value(Tokenizer& tokenizer, Token& token, int current_precedence, IntValue& value) {
     auto token_type = token.type;
 
     // parenthesis have highest precedence
@@ -266,44 +269,49 @@ static bool parse_int_value(Tokenizer& tokenizer, Token& token, int current_pred
         return false;
     }
 
-//    auto int_value = token.int_value;
+    IntValue lvalue(token.int_value);
 
-    Token next_token;
-    if (!tokenizer.peek_token(next_token)) {
-        return false;
-    }
+    // process binary operators left to right
+    while (1) {
+        if (!tokenizer.peek_token(token)) {
+            return false;
+        }
 
-    // this will return a positive number only for binary operators
-    int precedence = next_token.get_precedence();
-    if (precedence >= current_prededence) {
-        auto op = next_token.type;
-        
-        // consume the operator token
-        tokenizer.next_token(next_token);
-    
+        // this will return a positive number only for binary operators
+        int precedence = token.get_precedence();
+        if (precedence < current_precedence) {
+            break;
+        }
+        auto op = token.type;
+
+        // consume the operator token that we peeked
+        tokenizer.next_token(token);
+        // and read the next token beyond that
+        if (!tokenizer.next_token(token)) {
+            return false;
+        }
+   
         IntValue rvalue;
-        if (!parse_int_value(tokenizer, next_token, precedence, rvalue)) {
+        if (!parse_int_value(tokenizer, token, precedence, rvalue)) {
             return false;
         }
 
         switch (op) {
         case TOKEN_PLUS:
             if (rvalue.negative) {
-                int_value -= rvalue.value;
+                lvalue.value -= rvalue.value;
             } else {
-                int_value += rvalue.value;
+                lvalue.value += rvalue.value;
             }
             break;
         case TOKEN_MINUS:
             if (rvalue.negative) {
-                int_value += rvalue.value;
+                lvalue.value += rvalue.value;
             } else {
-                int_value -= rvalue.value;
+                lvalue.value -= rvalue.value;
             }
             break;
         case TOKEN_TIMES:
-            int_value *= rvalue.value;
-
         case TOKEN_DIV:
         case TOKEN_MOD:
         case TOKEN_AND:
@@ -311,12 +319,14 @@ static bool parse_int_value(Tokenizer& tokenizer, Token& token, int current_pred
         case TOKEN_XOR:
         case TOKEN_LSHIFT:
         case TOKEN_RSHIFT:
-        
+            printf("binary operation not implemented yet\n");
+            return false;
+        default:
+            printf("MDI internal error: bad op %d in parse_int_value\n", op);
         }
     }
-        
 
-    value.value = int_value;
+    value = lvalue;
     return true;
 }
 

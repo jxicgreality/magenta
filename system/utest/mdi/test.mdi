@@ -33,3 +33,7 @@ test-list = {
         str = "three"
     }
 }
+
+seven-1 = 4 + 3
+seven-2 = 3 + 2 + 1 + 1
+seven-3 = 3 + 5 - 1

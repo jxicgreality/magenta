@@ -252,11 +252,38 @@ bool anonymous_list_tests(void) {
     END_TEST;
 }
 
+bool expression_tests(void) {
+    BEGIN_TEST;
+
+    mdi_node_ref_t root, node;
+    uint32_t u32;
+
+    EXPECT_EQ(mdi_init(mdi_data, mdi_length, &root), 0, "mdi_init failed");
+
+    EXPECT_EQ(mdi_find_node(&root, MDI_TEST_SEVEN_1, &node), 0,
+              "MDI_TEST_SEVEN_1 not found");
+    EXPECT_EQ(mdi_node_uint32(&node, &u32), 0, "mdi_node_uint32 failed");
+    EXPECT_EQ(u32, 7u, "mdi_node_uint32 returned wrong value");
+
+    EXPECT_EQ(mdi_find_node(&root, MDI_TEST_SEVEN_2, &node), 0,
+              "MDI_TEST_SEVEN_2 not found");
+    EXPECT_EQ(mdi_node_uint32(&node, &u32), 0, "mdi_node_uint32 failed");
+    EXPECT_EQ(u32, 7u, "mdi_node_uint32 returned wrong value");
+
+    EXPECT_EQ(mdi_find_node(&root, MDI_TEST_SEVEN_3, &node), 0,
+              "MDI_TEST_SEVEN_3 not found");
+    EXPECT_EQ(mdi_node_uint32(&node, &u32), 0, "mdi_node_uint32 failed");
+    EXPECT_EQ(u32, 7u, "mdi_node_uint32 returned wrong value");
+
+    END_TEST;
+}
+
 BEGIN_TEST_CASE(mdi_tests)
 RUN_TEST(load_mdi);
 RUN_TEST(simple_tests);
 RUN_TEST(array_tests);
 RUN_TEST(anonymous_list_tests);
+RUN_TEST(expression_tests);
 END_TEST_CASE(mdi_tests)
 
 int main(int argc, char** argv) {
