@@ -14,14 +14,6 @@
 
 //#define PRINT_ID_DECLARATIONS 1
 
-struct IntValue {
-    IntValue() {}
-    IntValue(uint64_t v) { value = v; }
-
-    uint64_t value = 0;
-    bool negative = false;
-};
-
 static bool parse_node(Tokenizer& tokenizer, Token& token, Node& parent);
 
 // map of identifier names to mdi_id_t
@@ -227,7 +219,7 @@ static bool parse_include(Tokenizer& tokenizer, Node& root) {
     return process_file(&tokenizer, token.string_value.c_str(), root);
 }
 
-static bool parse_int_value(Tokenizer& tokenizer, Token& token, int current_precedence, IntValue& value) {
+static bool parse_int_value(Tokenizer& tokenizer, Token& token, int current_precedence, uint64_t& out_value) {
     auto token_type = token.type;
 
     // parenthesis have highest precedence
@@ -235,7 +227,7 @@ static bool parse_int_value(Tokenizer& tokenizer, Token& token, int current_prec
         if (!tokenizer.next_token(token)) {
             return false;
         }
-        if (!parse_int_value(tokenizer, token, 0, value)) {
+        if (!parse_int_value(tokenizer, token, 0, out_value)) {
             return false;
         }
         if (!tokenizer.next_token(token)) {
@@ -253,13 +245,13 @@ static bool parse_int_value(Tokenizer& tokenizer, Token& token, int current_prec
         if (!tokenizer.next_token(token)) {
             return false;
         }
-        if (!parse_int_value(tokenizer, token, 255, value)) {
+        if (!parse_int_value(tokenizer, token, 255, out_value)) {
             return false;
         }
         if (token_type == TOKEN_MINUS) {
-            value.negative = !value.negative;
+            out_value = (uint64_t)(-(int64_t)out_value);
         } else if (token_type == TOKEN_NOT) {
-            value.value = ~value.value;
+            out_value = ~out_value;
         }
         return true;
     }
@@ -269,7 +261,7 @@ static bool parse_int_value(Tokenizer& tokenizer, Token& token, int current_prec
         return false;
     }
 
-    IntValue lvalue(token.int_value);
+    uint64_t lvalue = token.int_value;
 
     // process binary operators left to right
     while (1) {
@@ -291,81 +283,69 @@ static bool parse_int_value(Tokenizer& tokenizer, Token& token, int current_prec
             return false;
         }
    
-        IntValue rvalue;
+        uint64_t rvalue;
         if (!parse_int_value(tokenizer, token, precedence, rvalue)) {
             return false;
         }
 
         switch (op) {
-        case TOKEN_MINUS:
-            rvalue.negative = !rvalue.negative;
-            // fall through
         case TOKEN_PLUS:
-            if (lvalue.negative) {
-                if (rvalue.negative) {
-                    lvalue.value += rvalue.value;
-                } else if (lvalue.value > rvalue.value) {
-                    lvalue.value -= rvalue.value;
-                } else {
-                    lvalue.value = rvalue.value - lvalue.value;
-                    lvalue.negative = true;
-                }            
-            } else {
-                if (!rvalue.negative) {
-                    lvalue.value += rvalue.value;
-                } else if (lvalue.value > rvalue.value) {
-                    lvalue.value -= rvalue.value;
-                } else {
-                    lvalue.value = rvalue.value - lvalue.value;
-                    lvalue.negative = false;
-                }            
-            }
+            lvalue += rvalue;
+            break;
+        case TOKEN_MINUS:
+            lvalue -= rvalue;
             break;
         case TOKEN_TIMES:
-            lvalue.value *= rvalue.value;
-            if (lvalue.negative) {
-                rvalue.negative = !rvalue.negative;
-            }
+            lvalue *= rvalue;
             break;
         case TOKEN_DIV:
-            if (lvalue.value == 0) {
+            if (rvalue == 0) {
                 tokenizer.print_err("Divide by zero\n");
                 return false;
             }
-            lvalue.value /= rvalue.value;
-            if (lvalue.negative) {
-                rvalue.negative = !rvalue.negative;
-            }
+            lvalue /= rvalue;
             break;
         case TOKEN_MOD:
-            if (lvalue.value < 1 || lvalue.negative) {
-                tokenizer.print_err("Attempt to mod by %d\n", (lvalue.negative ? -lvalue.value : lvalue.value));
+            if ((int64_t)rvalue < 1) {
+                tokenizer.print_err("Attempt to mod by %d\n", (int64_t)rvalue);
                 return false;
             }
-            lvalue.value %= rvalue.value;
-            if (lvalue.negative) {
-                rvalue.negative = !rvalue.negative;
-            }
+            lvalue %= (int64_t)rvalue;
             break;
         case TOKEN_AND:
+            lvalue &= rvalue;
+            break;
         case TOKEN_OR:
+            lvalue |= rvalue;
+            break;
         case TOKEN_XOR:
+            lvalue ^= rvalue;
+            break;
         case TOKEN_LSHIFT:
+            if ((int64_t)rvalue < 0) {
+                tokenizer.print_err("Attempt to left shift by negative value\n");
+                return false;
+            }
+            lvalue <<= rvalue;
+            break;
         case TOKEN_RSHIFT:
-            tokenizer.print_err("binary operation not implemented yet\n");
-            return false;
+            if ((int64_t)rvalue < 0) {
+                tokenizer.print_err("Attempt to right shift by negative value\n");
+                return false;
+            }
+            lvalue >>= rvalue;
+            break;
         default:
             tokenizer.print_err("MDI internal error: bad op %d in parse_int_value\n", op);
         }
     }
 
-    value = lvalue;
+    out_value = lvalue;
     return true;
 }
 
 static bool parse_int_node(Tokenizer& tokenizer, Node& node, Token& token, Node& parent) {
-    IntValue int_value;
-    int_value.negative = false;
+    uint64_t int_value;
 
     if (!parse_int_value(tokenizer, token, 0, int_value)) {
         return false;
@@ -373,22 +353,16 @@ static bool parse_int_node(Tokenizer& tokenizer, Node& node, Token& token, Node&
 
     mdi_type_t type = node.get_type();
 
-    // signed version of our value
-    int64_t value = (int64_t)int_value.value;
-    if (int_value.negative) {
-        value = -value;
-    }
-
     switch (type) {
     case MDI_UINT8:
-        node.int_value = value & 0xFF;
+        node.int_value = int_value & 0xFF;
         break;
     case MDI_INT32:
     case MDI_UINT32:
-        node.int_value = value & 0xFFFFFFFF;
+        node.int_value = int_value & 0xFFFFFFFF;
         break;
     case MDI_UINT64:
-        node.int_value = int_value.value;
+        node.int_value = int_value;
         break;
     default:
         assert(0);
