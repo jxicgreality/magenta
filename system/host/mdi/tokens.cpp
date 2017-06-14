@@ -65,28 +65,27 @@ mdi_type_t Token::get_type_name() {
     }
 }
 
-// returns operator precedence for binary operators
+// returns precedence for binary operators
 int Token::get_precedence() {
-    // returns precedence levels from C language spc
     switch (type) {
+    case TOKEN_OR:
+        return 1;
+    case TOKEN_XOR:
+        return 2;
+    case TOKEN_AND:
+        return 3;
+    case TOKEN_LSHIFT:
+    case TOKEN_RSHIFT:
+        return 4;
+    case TOKEN_PLUS:
+    case TOKEN_MINUS:
+        return 5;
     case TOKEN_TIMES:
     case TOKEN_DIV:
     case TOKEN_MOD:
-        return 3;
-    case TOKEN_PLUS:
-    case TOKEN_MINUS:
-        return 4;
-    case TOKEN_LSHIFT:
-    case TOKEN_RSHIFT:
-        return 5;
-    case TOKEN_AND:
-        return 8;
-    case TOKEN_XOR:
-        return 9;
-    case TOKEN_OR:
-        return 10;
+        return 6;
     default:
-        printf("MDI internal error: bad token type in Token::get_precedence()\n");
+        // not a binary operator
         return -1;
     }
 }
@@ -126,6 +125,12 @@ void Token::print() {
     case TOKEN_DOT:
         printf("TOKEN_DOT\n");
         break;
+    case TOKEN_LPAREN:
+        printf("TOKEN_LPAREN\n");
+        break;
+    case TOKEN_RPAREN:
+        printf("TOKEN_RPAREN\n");
+        break;
     case TOKEN_PLUS:
         printf("TOKEN_PLUS\n");
         break;
@@ -158,12 +163,6 @@ void Token::print() {
         break;
     case TOKEN_RSHIFT:
         printf("TOKEN_RSHIFT\n");
-        break;
-    case TOKEN_LPAREN:
-        printf("TOKEN_LPAREN\n");
-        break;
-    case TOKEN_RPAREN:
-        printf("TOKEN_RPAREN\n");
         break;
     case TOKEN_TRUE:
         printf("TOKEN_TRUE\n");
@@ -486,6 +485,12 @@ bool Tokenizer::next_token(Token& token) {
         case '.':
             token.type = TOKEN_DOT;
             break;
+        case '(':
+            token.type = TOKEN_LPAREN;
+            break;
+        case ')':
+            token.type = TOKEN_RPAREN;
+            break;
         case '+':
             token.type = TOKEN_PLUS;
             break;
@@ -528,12 +533,6 @@ bool Tokenizer::next_token(Token& token) {
                 print_err("unexpected token '>'\n");
                 result = false;
             }
-            break;
-        case '(':
-            token.type = TOKEN_LPAREN;
-            break;
-        case ')':
-            token.type = TOKEN_RPAREN;
             break;
         default:
             print_err("invalid token \'%c\'\n", ch);

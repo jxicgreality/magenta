@@ -23,6 +23,10 @@ enum TokenType {
     TOKEN_ARRAY_END,        // ']'
     TOKEN_EQUALS,           // '='
     TOKEN_DOT,              // '.'
+    TOKEN_LPAREN,           // '('
+    TOKEN_RPAREN,           // ')'
+
+    // unary and binary operators
     TOKEN_PLUS,             // '+'
     TOKEN_MINUS,            // '-'
     TOKEN_TIMES,            // '*'
@@ -34,8 +38,6 @@ enum TokenType {
     TOKEN_XOR,              // '^'
     TOKEN_LSHIFT,           // "<<"
     TOKEN_RSHIFT,           // ">>"
-    TOKEN_LPAREN,           // '('
-    TOKEN_RPAREN,           // ')'
 
     // reserved words
     TOKEN_TRUE,             // "true"
@@ -60,7 +62,7 @@ struct Token {
     // returns type for type name tokens
     mdi_type_t get_type_name();
 
-    // returns operator precedence for binary operators
+    // returns precedence for binary operators
     int get_precedence();
 
     void print();

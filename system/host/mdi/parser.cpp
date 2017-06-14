@@ -224,7 +224,7 @@ static bool parse_include(Tokenizer& tokenizer, Node& root) {
     return process_file(&tokenizer, token.string_value.c_str(), root);
 }
 
-static bool parse_int_value(Tokenizer& tokenizer, Token& token, IntValue& value) {
+static bool parse_int_value(Tokenizer& tokenizer, Token& token, int current_prededence, IntValue& value) {
     auto token_type = token.type;
 
     // parenthesis have highest precedence
@@ -232,7 +232,7 @@ static bool parse_int_value(Tokenizer& tokenizer, Token& token, IntValue& value)
         if (!tokenizer.next_token(token)) {
             return false;
         }
-        if (!parse_int_value(tokenizer, token, value)) {
+        if (!parse_int_value(tokenizer, token, 0, value)) {
             return false;
         }
         if (!tokenizer.next_token(token)) {
@@ -250,24 +250,73 @@ static bool parse_int_value(Tokenizer& tokenizer, Token& token, IntValue& value)
         if (!tokenizer.next_token(token)) {
             return false;
         }
-        if (!parse_int_value(tokenizer, token, value)) {
+        if (!parse_int_value(tokenizer, token, 255, value)) {
             return false;
         }
         if (token_type == TOKEN_MINUS) {
             value.negative = !value.negative;
         } else if (token_type == TOKEN_NOT) {
             value.value = ~value.value;
-printf("got TOKEN_NOT %" PRIx64 "\n", value.value);
         }
         return true;
     }
 
-    // next handle list of binary operators
     if (token_type != TOKEN_INT_LITERAL) {
         tokenizer.print_err("expected integer value, got \"%s\"\n", token.string_value.c_str());
         return false;
     }
-    value.value = token.int_value;
+
+//    auto int_value = token.int_value;
+
+    Token next_token;
+    if (!tokenizer.peek_token(next_token)) {
+        return false;
+    }
+
+    // this will return a positive number only for binary operators
+    int precedence = next_token.get_precedence();
+    if (precedence >= current_prededence) {
+        auto op = next_token.type;
+        
+        // consume the operator token
+        tokenizer.next_token(next_token);
+    
+        IntValue rvalue;
+        if (!parse_int_value(tokenizer, next_token, precedence, rvalue)) {
+            return false;
+        }
+
+        switch (op) {
+        case TOKEN_PLUS:
+            if (rvalue.negative) {
+                int_value -= rvalue.value;
+            } else {
+                int_value += rvalue.value;
+            }
+            break;
+        case TOKEN_MINUS:
+            if (rvalue.negative) {
+                int_value += rvalue.value;
+            } else {
+                int_value -= rvalue.value;
+            }
+            break;
+        case TOKEN_TIMES:
+            int_value *= rvalue.value;
+
+        case TOKEN_DIV:
+        case TOKEN_MOD:
+        case TOKEN_AND:
+        case TOKEN_OR:
+        case TOKEN_XOR:
+        case TOKEN_LSHIFT:
+        case TOKEN_RSHIFT:
+        
+        }
+    }
+        
+
+    value.value = int_value;
     return true;
 }
 
@@ -275,7 +324,7 @@ static bool parse_int_node(Tokenizer& tokenizer, Node& node, Token& token, Node&
     IntValue int_value;
     int_value.negative = false;
 
-    if (!parse_int_value(tokenizer, token, int_value)) {
+    if (!parse_int_value(tokenizer, token, 0, int_value)) {
         return false;
     }
 
