@@ -22,3 +22,4 @@ string              test-list.str           MDI_TEST_LIST_STR           10022
 uint32              seven-1                 MDI_TEST_SEVEN_1            10030
 uint32              seven-2                 MDI_TEST_SEVEN_2            10031
 uint32              seven-3                 MDI_TEST_SEVEN_3            10032
+uint32              seven-4                 MDI_TEST_SEVEN_4            10033

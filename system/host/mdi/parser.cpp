@@ -219,7 +219,8 @@ static bool parse_include(Tokenizer& tokenizer, Node& root) {
     return process_file(&tokenizer, token.string_value.c_str(), root);
 }
 
-static bool parse_int_value(Tokenizer& tokenizer, Token& token, int current_precedence, uint64_t& out_value) {
+static bool parse_int_value(Tokenizer& tokenizer, Token& token, int precedence, uint64_t& out_value) {
+printf("parse_int_value precedence %d\n", precedence);
     auto token_type = token.type;
 
     // parenthesis have highest precedence
@@ -236,6 +237,7 @@ static bool parse_int_value(Tokenizer& tokenizer, Token& token, int current_prec
         if (token.type != TOKEN_RPAREN) {
             tokenizer.print_err("Expected ')', got \"%s\"\n", token.string_value.c_str());
         }
+printf("parse_int_value paren returning %zu\n", out_value);
         return true;
     }
 
@@ -253,6 +255,7 @@ static bool parse_int_value(Tokenizer& tokenizer, Token& token, int current_prec
         } else if (token_type == TOKEN_NOT) {
             out_value = ~out_value;
         }
+printf("parse_int_value unary returning %zu\n", out_value);
         return true;
     }
 
@@ -262,20 +265,34 @@ static bool parse_int_value(Tokenizer& tokenizer, Token& token, int current_prec
     }
 
     uint64_t lvalue = token.int_value;
+printf("lvalue %zu\n", lvalue);
 
     // process binary operators left to right
+    bool first = true;
     while (1) {
         if (!tokenizer.peek_token(token)) {
             return false;
         }
 
-        // this will return a positive number only for binary operators
-        int precedence = token.get_precedence();
-        if (precedence < current_precedence) {
+        int op_precedence = token.get_precedence();
+        if (op_precedence < 0) {
+            // not a binary operator, bail
+            break;
+        } else if (first) {
+            if (op_precedence < precedence) {
+                // we are handling higher precedence operator, so bail
+                break;
+            }
+            // set precedence based on first binary operator we see 
+            precedence = op_precedence;
+        } else if (op_precedence != precedence) {
+ printf("op_precedence %d precedence %d for %s\n", op_precedence, precedence, token.string_value.c_str());
+            // bail if we see an operator of different precedence
             break;
         }
-        auto op = token.type;
 
+        auto op = token.type;
+printf("op %s\n", token.string_value.c_str());
         // consume the operator token that we peeked
         tokenizer.next_token(token);
         // and read the next token beyond that
@@ -287,7 +304,7 @@ static bool parse_int_value(Tokenizer& tokenizer, Token& token, int current_prec
         if (!parse_int_value(tokenizer, token, precedence, rvalue)) {
             return false;
         }
-
+printf("rvalue %zu\n", rvalue);
         switch (op) {
         case TOKEN_PLUS:
             lvalue += rvalue;
@@ -338,9 +355,11 @@ static bool parse_int_value(Tokenizer& tokenizer, Token& token, int current_prec
         default:
             tokenizer.print_err("MDI internal error: bad op %d in parse_int_value\n", op);
         }
+printf("lvalue now %zu\n", lvalue);
     }
 
     out_value = lvalue;
+printf("parse_int_value binary returning %zu\n", out_value);
     return true;
 }
 

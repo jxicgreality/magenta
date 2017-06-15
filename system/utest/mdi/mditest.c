@@ -275,6 +275,11 @@ bool expression_tests(void) {
     EXPECT_EQ(mdi_node_uint32(&node, &u32), 0, "mdi_node_uint32 failed");
     EXPECT_EQ(u32, 7u, "mdi_node_uint32 returned wrong value");
 
+    EXPECT_EQ(mdi_find_node(&root, MDI_TEST_SEVEN_4, &node), 0,
+              "MDI_TEST_SEVEN_4 not found");
+    EXPECT_EQ(mdi_node_uint32(&node, &u32), 0, "mdi_node_uint32 failed");
+    EXPECT_EQ(u32, 7u, "mdi_node_uint32 returned wrong value");
+
     END_TEST;
 }
 

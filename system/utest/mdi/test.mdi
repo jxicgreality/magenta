@@ -1,5 +1,8 @@
 include "system/utest/mdi/test-defs.mdi"
 
+seven-4 = 1 + 2 * 3 - 4 + 2 * 2
+
+
 test-uint8 = (123)
 test-int32 = (-123)
 test-pint32 = +(123)
@@ -37,3 +40,4 @@ test-list = {
 seven-1 = 4 + 3
 seven-2 = 3 + 2 + 1 + 1
 seven-3 = 3 + 5 - 1
+//seven-4 = 1 + 2 * 3 - 4 + 2 * 2
